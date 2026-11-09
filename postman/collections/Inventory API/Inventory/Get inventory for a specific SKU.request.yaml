@@ -1,0 +1,9 @@
+$kind: http-request
+url: "{{baseUrl}}/inventory/:skuId"
+method: GET
+headers:
+  Accept: application/json
+pathVariables:
+  skuId: string
+examples: ./.resources/Get inventory for a specific SKU.resources/examples
+order: 2000

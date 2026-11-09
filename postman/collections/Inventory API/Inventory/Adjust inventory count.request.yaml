@@ -1,0 +1,18 @@
+$kind: http-request
+description: Manually adjust inventory levels (e.g. receiving new stock)
+url: "{{baseUrl}}/inventory/:skuId"
+method: PATCH
+headers:
+  Content-Type: application/json
+  Accept: application/json
+pathVariables:
+  skuId: string
+body:
+  type: json
+  content: |-
+    {
+      "adjustment": 50,
+      "reason": "receiving"
+    }
+examples: ./.resources/Adjust inventory count.resources/examples
+order: 3000

@@ -1,0 +1,38 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/inventory/reserve"
+  method: POST
+  headers:
+    - key: Content-Type
+      value: application/json
+    - key: Accept
+      value: application/json
+    - key: Authorization
+      value: Bearer <token>
+      description: "Added as a part of security scheme: bearer"
+  body:
+    type: json
+    content: |-
+      {
+        "orderId": "ord_abc123",
+        "items": [
+          {
+            "skuId": "SKU-9981",
+            "quantity": 2
+          }
+        ],
+        "ttlSeconds": 900
+      }
+response:
+  statusCode: 409
+  statusText: Conflict
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "error": "INSUFFICIENT_STOCK",
+        "message": "SKU-9981 has only 1 unit available"
+      }
+order: 2000

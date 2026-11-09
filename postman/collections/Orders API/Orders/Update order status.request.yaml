@@ -1,0 +1,20 @@
+$kind: http-request
+description: |
+  Updates an order's status. When transitioning to `confirmed`,
+  internally calls the **Shipping API** (`POST /shipments`) to
+  create a shipment and obtain a tracking number.
+url: "{{baseUrl}}/orders/:orderId"
+method: PATCH
+headers:
+  Content-Type: application/json
+  Accept: application/json
+pathVariables:
+  orderId: string
+body:
+  type: json
+  content: |-
+    {
+      "status": "confirmed"
+    }
+examples: ./.resources/Update order status.resources/examples
+order: 4000

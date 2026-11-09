@@ -1,0 +1,21 @@
+$kind: collection
+description: |-
+  Manages shipment creation, tracking, and carrier integrations.
+  This API is called by the **Orders API** when an order is confirmed,
+  to create a shipment and generate a tracking number.
+
+  **Who depends on this API:**
+  - `Orders API` — calls `POST /shipments` when order status moves to `confirmed`
+
+
+  Contact Support:
+   Name: Logistics & Fulfillment Team
+   Email: logistics@example.com
+variables:
+  baseUrl: https://api.example.com/v1
+auth:
+  - id: d5df0f89-1aa3-4679-9d9d-3a2f8f72a45a
+    type: bearer
+    name: bearer auth
+    credentials:
+      token: "{{bearerToken}}"

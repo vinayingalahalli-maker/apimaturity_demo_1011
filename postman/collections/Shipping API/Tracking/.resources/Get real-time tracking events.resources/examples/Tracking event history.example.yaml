@@ -1,0 +1,41 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/shipments/:shipmentId/tracking"
+  method: GET
+  headers:
+    - key: Accept
+      value: application/json
+    - key: Authorization
+      value: Bearer <token>
+      description: "Added as a part of security scheme: bearer"
+  pathVariables:
+    shipmentId: string
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "shipmentId": "shp_xyz789",
+        "trackingNumber": "1Z999AA10123456784",
+        "carrier": "UPS",
+        "currentStatus": "in_transit",
+        "events": [
+          {
+            "timestamp": "2024-05-02T08:00:00Z",
+            "status": "picked_up",
+            "location": "Austin, TX",
+            "description": "Package picked up by carrier"
+          },
+          {
+            "timestamp": "2024-05-02T18:00:00Z",
+            "status": "in_transit",
+            "location": "Dallas, TX",
+            "description": "Departed UPS facility"
+          }
+        ]
+      }
+order: 1000

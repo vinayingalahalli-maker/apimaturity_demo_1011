@@ -1,0 +1,9 @@
+$kind: http-request
+url: "{{baseUrl}}/shipments/:shipmentId/tracking"
+method: GET
+headers:
+  Accept: application/json
+pathVariables:
+  shipmentId: string
+examples: ./.resources/Get real-time tracking events.resources/examples
+order: 1000

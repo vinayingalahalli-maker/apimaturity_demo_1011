@@ -1,0 +1,22 @@
+$kind: collection
+description: |-
+  Manages customer order lifecycle. This API depends on the Inventory API
+  to verify stock availability before confirming orders, and triggers the
+  Shipping API to create shipments upon order confirmation.
+
+  **Upstream dependencies:**
+  - `Inventory API` — called on every POST /orders to reserve stock
+  - `Shipping API` — called when order status transitions to `confirmed`
+
+
+  Contact Support:
+   Name: E-Commerce Platform Team
+   Email: ecommerce-platform@example.com
+variables:
+  baseUrl: https://api.example.com/v1
+auth:
+  - id: 3947581c-f43f-42e5-8966-db42fd90f0cd
+    type: bearer
+    name: bearer auth
+    credentials:
+      token: "{{bearerToken}}"

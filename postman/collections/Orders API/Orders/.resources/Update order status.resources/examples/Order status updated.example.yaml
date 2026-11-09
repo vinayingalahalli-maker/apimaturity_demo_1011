@@ -1,0 +1,62 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/orders/:orderId"
+  method: PATCH
+  headers:
+    - key: Content-Type
+      value: application/json
+    - key: Accept
+      value: application/json
+    - key: Authorization
+      value: Bearer <token>
+      description: "Added as a part of security scheme: bearer"
+  pathVariables:
+    orderId: string
+  body:
+    type: json
+    content: |-
+      {
+        "status": "confirmed"
+      }
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "orderId": "ord_abc123",
+        "customerId": "cust_001",
+        "status": "shipped",
+        "items": [
+          {
+            "skuId": "string",
+            "productName": "string",
+            "quantity": 6840,
+            "unitPrice": 1067.7561374959544
+          },
+          {
+            "skuId": "string",
+            "productName": "string",
+            "quantity": 7421,
+            "unitPrice": 2681.8630282288946
+          }
+        ],
+        "subtotal": 2665.667461061321,
+        "tax": 4896.760694144826,
+        "total": 5071.894142119721,
+        "shippingAddress": {
+          "line1": "string",
+          "line2": "string",
+          "city": "string",
+          "state": "string",
+          "zip": "string",
+          "country": "string"
+        },
+        "shipmentId": "string",
+        "createdAt": "1971-02-13T10:55:50.483Z",
+        "updatedAt": "1946-09-15T01:17:44.712Z"
+      }
+order: 1000

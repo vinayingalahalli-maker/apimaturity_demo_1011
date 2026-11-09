@@ -1,0 +1,30 @@
+name: Postman Spec Lint Merge Gate
+on:
+  pull_request:
+    branches:
+      - main
+      - 'releases/**'
+
+jobs:
+  lint-spec:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Install Postman CLI
+        run: curl -o- "https://dl-cli.pstmn.io/install/linux64.sh" | sh
+
+      - name: Login to Postman
+        env:
+          POSTMAN_API_KEY: ${{ secrets.POSTMAN_API_KEY }}
+        run: postman login --with-api-key $POSTMAN_API_KEY
+
+      - name: Lint Inventory Service OpenAPI Spec
+        run: postman spec lint ./postman/specs/inventory-api.yaml --workspace-id ac44a3bd-e7c2-4b86-bcb2-f7a91811a229 --fail-severity ERROR
+
+      - name: Lint Orders Service OpenAPI Spec
+        run: postman spec lint ./postman/specs/orders-api.yaml --workspace-id ac44a3bd-e7c2-4b86-bcb2-f7a91811a229 --fail-severity ERROR
+
+      - name: Lint Shipping Service OpenAPI Spec
+        run: postman spec lint ./postman/specs/shipping-api.yaml --workspace-id ac44a3bd-e7c2-4b86-bcb2-f7a91811a229 --fail-severity ERROR

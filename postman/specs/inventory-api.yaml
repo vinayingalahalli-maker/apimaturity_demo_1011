@@ -1,0 +1,271 @@
+openapi: 3.0.3
+info:
+  title: Inventory API
+  description: |
+    Manages product inventory levels, stock reservations, and SKU catalog.
+    This API is called by the **Orders API** to check and reserve stock
+    before an order is confirmed.
+    
+    **Who depends on this API:**
+    - `Orders API` — calls `POST /inventory/reserve` on every new order
+    - `Orders API` — calls `DELETE /inventory/reserve/{reservationId}` on order cancellation
+  version: 1.0.0
+  contact:
+    name: Inventory & Warehouse Team
+    email: inventory@example.com
+tags:
+  - name: Inventory
+    description: Stock level management
+  - name: Reservations
+    description: Temporary stock reservations for in-flight orders
+servers:
+  - url: https://api.example.com/v1
+    description: Production
+  - url: https://{{inventoryApiMockUrl}}
+    description: Mock Server
+paths:
+  /inventory:
+    get:
+      tags: [Inventory]
+      operationId: listInventory
+      summary: List inventory levels
+      parameters:
+        - name: skuId
+          in: query
+          schema:
+            type: string
+        - name: lowStock
+          in: query
+          description: If true, returns only items below reorder threshold
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Inventory list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/InventoryItem'
+              example:
+                data:
+                  - skuId: "SKU-9981"
+                    productName: "Wireless Headphones"
+                    quantityOnHand: 150
+                    quantityReserved: 12
+                    quantityAvailable: 138
+                    reorderThreshold: 20
+                    warehouseLocation: "BIN-A4-12"
+  /inventory/{skuId}:
+    get:
+      tags: [Inventory]
+      operationId: getInventoryBySku
+      summary: Get inventory for a specific SKU
+      parameters:
+        - name: skuId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Inventory details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InventoryItem'
+              example:
+                skuId: "SKU-9981"
+                productName: "Wireless Headphones"
+                quantityOnHand: 150
+                quantityReserved: 12
+                quantityAvailable: 138
+                reorderThreshold: 20
+                warehouseLocation: "BIN-A4-12"
+        '404':
+          description: SKU not found
+    patch:
+      tags: [Inventory]
+      operationId: adjustInventory
+      summary: Adjust inventory count
+      description: Manually adjust inventory levels (e.g. receiving new stock)
+      parameters:
+        - name: skuId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                adjustment:
+                  type: integer
+                  description: Positive to add stock, negative to remove
+                reason:
+                  type: string
+                  enum: [receiving, damage, audit_correction, return]
+            example:
+              adjustment: 50
+              reason: "receiving"
+      responses:
+        '200':
+          description: Inventory updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InventoryItem'
+  /inventory/reserve:
+    post:
+      tags: [Reservations]
+      operationId: reserveStock
+      summary: Reserve stock for an order
+      description: |
+        Atomically checks availability and reserves stock for all provided SKUs.
+        Called by the **Orders API** during order creation. Returns a `reservationId`
+        that must be used to release or commit the reservation.
+        
+        Returns 409 if any item has insufficient stock.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReserveRequest'
+            example:
+              orderId: "ord_abc123"
+              items:
+                - skuId: "SKU-9981"
+                  quantity: 2
+              ttlSeconds: 900
+      responses:
+        '201':
+          description: Reservation created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Reservation'
+              example:
+                reservationId: "res_001xyz"
+                orderId: "ord_abc123"
+                status: "active"
+                items:
+                  - skuId: "SKU-9981"
+                    quantity: 2
+                expiresAt: "2024-05-01T10:15:00Z"
+        '409':
+          description: Insufficient stock
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "INSUFFICIENT_STOCK"
+                message: "SKU-9981 has only 1 unit available"
+  /inventory/reserve/{reservationId}:
+    delete:
+      tags: [Reservations]
+      operationId: releaseReservation
+      summary: Release a stock reservation
+      description: Releases a reservation, returning stock to available. Called by Orders API on cancellation.
+      parameters:
+        - name: reservationId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Reservation released
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  reservationId:
+                    type: string
+                  status:
+                    type: string
+              example:
+                reservationId: "res_001xyz"
+                status: "released"
+components:
+  schemas:
+    InventoryItem:
+      type: object
+      properties:
+        skuId:
+          type: string
+        productName:
+          type: string
+        quantityOnHand:
+          type: integer
+        quantityReserved:
+          type: integer
+        quantityAvailable:
+          type: integer
+        reorderThreshold:
+          type: integer
+        warehouseLocation:
+          type: string
+    ReserveRequest:
+      type: object
+      required: [orderId, items]
+      properties:
+        orderId:
+          type: string
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              skuId:
+                type: string
+              quantity:
+                type: integer
+        ttlSeconds:
+          type: integer
+          default: 900
+          description: How long to hold the reservation
+    Reservation:
+      type: object
+      properties:
+        reservationId:
+          type: string
+        orderId:
+          type: string
+        status:
+          type: string
+          enum: [active, committed, released, expired]
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              skuId:
+                type: string
+              quantity:
+                type: integer
+        expiresAt:
+          type: string
+          format: date-time
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+security:
+  - bearerAuth: []

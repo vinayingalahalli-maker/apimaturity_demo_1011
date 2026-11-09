@@ -1,0 +1,10 @@
+$kind: http-request
+description: Releases a reservation, returning stock to available. Called by Orders API on cancellation.
+url: "{{baseUrl}}/inventory/reserve/:reservationId"
+method: DELETE
+headers:
+  Accept: application/json
+pathVariables:
+  reservationId: string
+examples: ./.resources/Release a stock reservation.resources/examples
+order: 2000

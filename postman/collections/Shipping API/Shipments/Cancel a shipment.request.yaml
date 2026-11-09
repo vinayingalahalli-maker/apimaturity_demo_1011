@@ -1,0 +1,10 @@
+$kind: http-request
+description: Voids the shipping label. Only valid before carrier pickup.
+url: "{{baseUrl}}/shipments/:shipmentId/cancel"
+method: POST
+headers:
+  Accept: application/json
+pathVariables:
+  shipmentId: string
+examples: ./.resources/Cancel a shipment.resources/examples
+order: 4000

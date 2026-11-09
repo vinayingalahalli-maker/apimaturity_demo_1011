@@ -1,0 +1,31 @@
+$kind: http-request
+description: |
+  Creates a new order. Internally calls the **Inventory API** (`POST /inventory/reserve`)
+  to verify and reserve stock for all line items before confirming.
+  If any item is out of stock, returns a 409 conflict.
+url: "{{baseUrl}}/orders"
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: application/json
+body:
+  type: json
+  content: |-
+    {
+      "customerId": "cust_001",
+      "items": [
+        {
+          "skuId": "SKU-9981",
+          "quantity": 2
+        }
+      ],
+      "shippingAddress": {
+        "line1": "123 Main St",
+        "city": "Austin",
+        "state": "TX",
+        "zip": "78701",
+        "country": "US"
+      }
+    }
+examples: ./.resources/Create a new order.resources/examples
+order: 2000

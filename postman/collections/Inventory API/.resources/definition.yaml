@@ -1,0 +1,22 @@
+$kind: collection
+description: |-
+  Manages product inventory levels, stock reservations, and SKU catalog.
+  This API is called by the **Orders API** to check and reserve stock
+  before an order is confirmed.
+
+  **Who depends on this API:**
+  - `Orders API` — calls `POST /inventory/reserve` on every new order
+  - `Orders API` — calls `DELETE /inventory/reserve/{reservationId}` on order cancellation
+
+
+  Contact Support:
+   Name: Inventory & Warehouse Team
+   Email: inventory@example.com
+variables:
+  baseUrl: https://api.example.com/v1
+auth:
+  - id: 5d14b9f9-869a-486a-aefd-42a8bfc6b697
+    type: bearer
+    name: bearer auth
+    credentials:
+      token: "{{bearerToken}}"

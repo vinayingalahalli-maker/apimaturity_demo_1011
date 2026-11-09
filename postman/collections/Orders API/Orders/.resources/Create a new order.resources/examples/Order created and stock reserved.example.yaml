@@ -1,0 +1,65 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/orders"
+  method: POST
+  headers:
+    - key: Content-Type
+      value: application/json
+    - key: Accept
+      value: application/json
+    - key: Authorization
+      value: Bearer <token>
+      description: "Added as a part of security scheme: bearer"
+  body:
+    type: json
+    content: |-
+      {
+        "customerId": "cust_001",
+        "items": [
+          {
+            "skuId": "SKU-9981",
+            "quantity": 2
+          }
+        ],
+        "shippingAddress": {
+          "line1": "123 Main St",
+          "city": "Austin",
+          "state": "TX",
+          "zip": "78701",
+          "country": "US"
+        }
+      }
+response:
+  statusCode: 201
+  statusText: Created
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "orderId": "ord_abc123",
+        "customerId": "cust_001",
+        "status": "confirmed",
+        "items": [
+          {
+            "skuId": "SKU-9981",
+            "productName": "Wireless Headphones",
+            "quantity": 2,
+            "unitPrice": 79.99
+          }
+        ],
+        "subtotal": 159.98,
+        "tax": 12.8,
+        "total": 172.78,
+        "shippingAddress": {
+          "line1": "123 Main St",
+          "city": "Austin",
+          "state": "TX",
+          "zip": "78701",
+          "country": "US"
+        },
+        "createdAt": "2024-05-01T10:00:00Z",
+        "updatedAt": "2024-05-01T10:00:00Z"
+      }
+order: 1000

@@ -1,0 +1,359 @@
+openapi: 3.0.3
+info:
+  title: Orders API
+  description: |
+    Manages customer order lifecycle. This API depends on the Inventory API
+    to verify stock availability before confirming orders, and triggers the
+    Shipping API to create shipments upon order confirmation.
+    
+    **Upstream dependencies:**
+    - `Inventory API` — called on every POST /orders to reserve stock
+    - `Shipping API` — called when order status transitions to `confirmed`
+  version: 1.0.0
+  contact:
+    name: E-Commerce Platform Team
+    email: ecommerce-platform@example.com
+tags:
+  - name: Orders
+    description: Order management endpoints
+servers:
+  - url: https://api.example.com/v1
+    description: Production
+  - url: https://{{ordersApiMockUrl}}
+    description: Mock Server
+paths:
+  /orders:
+    get:
+      tags: [Orders]
+      operationId: listOrders
+      summary: List all orders
+      description: Returns a paginated list of all orders.
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [pending, confirmed, shipped, delivered, cancelled]
+        - name: customerId
+          in: query
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: A list of orders
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Order'
+                  meta:
+                    $ref: '#/components/schemas/PaginationMeta'
+              example:
+                data:
+                  - orderId: "ord_abc123"
+                    customerId: "cust_001"
+                    status: "confirmed"
+                    items:
+                      - skuId: "SKU-9981"
+                        productName: "Wireless Headphones"
+                        quantity: 2
+                        unitPrice: 79.99
+                    subtotal: 159.98
+                    tax: 12.80
+                    total: 172.78
+                    shippingAddress:
+                      line1: "123 Main St"
+                      city: "Austin"
+                      state: "TX"
+                      zip: "78701"
+                      country: "US"
+                    createdAt: "2024-05-01T10:00:00Z"
+                    updatedAt: "2024-05-01T10:05:00Z"
+                meta:
+                  total: 1
+                  limit: 20
+                  offset: 0
+    post:
+      tags: [Orders]
+      operationId: createOrder
+      summary: Create a new order
+      description: |
+        Creates a new order. Internally calls the **Inventory API** (`POST /inventory/reserve`)
+        to verify and reserve stock for all line items before confirming.
+        If any item is out of stock, returns a 409 conflict.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateOrderRequest'
+            example:
+              customerId: "cust_001"
+              items:
+                - skuId: "SKU-9981"
+                  quantity: 2
+              shippingAddress:
+                line1: "123 Main St"
+                city: "Austin"
+                state: "TX"
+                zip: "78701"
+                country: "US"
+      responses:
+        '201':
+          description: Order created and stock reserved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+              example:
+                orderId: "ord_abc123"
+                customerId: "cust_001"
+                status: "confirmed"
+                items:
+                  - skuId: "SKU-9981"
+                    productName: "Wireless Headphones"
+                    quantity: 2
+                    unitPrice: 79.99
+                subtotal: 159.98
+                tax: 12.80
+                total: 172.78
+                shippingAddress:
+                  line1: "123 Main St"
+                  city: "Austin"
+                  state: "TX"
+                  zip: "78701"
+                  country: "US"
+                createdAt: "2024-05-01T10:00:00Z"
+                updatedAt: "2024-05-01T10:00:00Z"
+        '409':
+          description: One or more items out of stock
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "INSUFFICIENT_STOCK"
+                message: "SKU-9981 has only 1 unit available; 2 requested"
+                details:
+                  skuId: "SKU-9981"
+                  requested: 2
+                  available: 1
+  /orders/{orderId}:
+    get:
+      tags: [Orders]
+      operationId: getOrder
+      summary: Get order by ID
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Order details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+              example:
+                orderId: "ord_abc123"
+                customerId: "cust_001"
+                status: "shipped"
+                items:
+                  - skuId: "SKU-9981"
+                    productName: "Wireless Headphones"
+                    quantity: 2
+                    unitPrice: 79.99
+                subtotal: 159.98
+                tax: 12.80
+                total: 172.78
+                shippingAddress:
+                  line1: "123 Main St"
+                  city: "Austin"
+                  state: "TX"
+                  zip: "78701"
+                  country: "US"
+                shipmentId: "shp_xyz789"
+                createdAt: "2024-05-01T10:00:00Z"
+                updatedAt: "2024-05-01T11:00:00Z"
+        '404':
+          description: Order not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    patch:
+      tags: [Orders]
+      operationId: updateOrderStatus
+      summary: Update order status
+      description: |
+        Updates an order's status. When transitioning to `confirmed`,
+        internally calls the **Shipping API** (`POST /shipments`) to
+        create a shipment and obtain a tracking number.
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status:
+                  type: string
+                  enum: [confirmed, cancelled]
+            example:
+              status: "confirmed"
+      responses:
+        '200':
+          description: Order status updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+    delete:
+      tags: [Orders]
+      operationId: cancelOrder
+      summary: Cancel an order
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Order cancelled
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  orderId:
+                    type: string
+                  status:
+                    type: string
+              example:
+                orderId: "ord_abc123"
+                status: "cancelled"
+components:
+  schemas:
+    Order:
+      type: object
+      properties:
+        orderId:
+          type: string
+          example: "ord_abc123"
+        customerId:
+          type: string
+          example: "cust_001"
+        status:
+          type: string
+          enum: [pending, confirmed, shipped, delivered, cancelled]
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderItem'
+        subtotal:
+          type: number
+          format: float
+        tax:
+          type: number
+          format: float
+        total:
+          type: number
+          format: float
+        shippingAddress:
+          $ref: '#/components/schemas/Address'
+        shipmentId:
+          type: string
+          description: Populated after Shipping API creates the shipment
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    OrderItem:
+      type: object
+      properties:
+        skuId:
+          type: string
+        productName:
+          type: string
+        quantity:
+          type: integer
+        unitPrice:
+          type: number
+          format: float
+    CreateOrderRequest:
+      type: object
+      required: [customerId, items, shippingAddress]
+      properties:
+        customerId:
+          type: string
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              skuId:
+                type: string
+              quantity:
+                type: integer
+        shippingAddress:
+          $ref: '#/components/schemas/Address'
+    Address:
+      type: object
+      properties:
+        line1:
+          type: string
+        line2:
+          type: string
+        city:
+          type: string
+        state:
+          type: string
+        zip:
+          type: string
+        country:
+          type: string
+    PaginationMeta:
+      type: object
+      properties:
+        total:
+          type: integer
+        limit:
+          type: integer
+        offset:
+          type: integer
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+        details:
+          type: object
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+security:
+  - bearerAuth: []

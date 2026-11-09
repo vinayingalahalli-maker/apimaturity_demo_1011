@@ -1,0 +1,27 @@
+$kind: http-request
+description: |
+  Atomically checks availability and reserves stock for all provided SKUs.
+  Called by the **Orders API** during order creation. Returns a `reservationId`
+  that must be used to release or commit the reservation.
+
+  Returns 409 if any item has insufficient stock.
+url: "{{baseUrl}}/inventory/reserve"
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: application/json
+body:
+  type: json
+  content: |-
+    {
+      "orderId": "ord_abc123",
+      "items": [
+        {
+          "skuId": "SKU-9981",
+          "quantity": 2
+        }
+      ],
+      "ttlSeconds": 900
+    }
+examples: ./.resources/Reserve stock for an order.resources/examples
+order: 1000

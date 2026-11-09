@@ -1,0 +1,39 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/inventory/:skuId"
+  method: PATCH
+  headers:
+    - key: Content-Type
+      value: application/json
+    - key: Accept
+      value: application/json
+    - key: Authorization
+      value: Bearer <token>
+      description: "Added as a part of security scheme: bearer"
+  pathVariables:
+    skuId: string
+  body:
+    type: json
+    content: |-
+      {
+        "adjustment": 50,
+        "reason": "receiving"
+      }
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "skuId": "string",
+        "productName": "string",
+        "quantityOnHand": 6160,
+        "quantityReserved": 739,
+        "quantityAvailable": 6264,
+        "reorderThreshold": 3899,
+        "warehouseLocation": "string"
+      }
+order: 1000

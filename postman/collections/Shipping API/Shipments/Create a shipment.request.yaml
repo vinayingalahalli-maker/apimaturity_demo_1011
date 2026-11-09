@@ -1,0 +1,33 @@
+$kind: http-request
+description: |
+  Creates a shipment for a confirmed order. Called by the **Orders API**
+  after order confirmation. Selects optimal carrier, generates a shipping
+  label, and returns a tracking number.
+url: "{{baseUrl}}/shipments"
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: application/json
+body:
+  type: json
+  content: |-
+    {
+      "orderId": "ord_abc123",
+      "destinationAddress": {
+        "line1": "123 Main St",
+        "city": "Austin",
+        "state": "TX",
+        "zip": "78701",
+        "country": "US"
+      },
+      "items": [
+        {
+          "skuId": "SKU-9981",
+          "quantity": 2,
+          "weightLbs": 1.2
+        }
+      ],
+      "serviceLevel": "GROUND"
+    }
+examples: ./.resources/Create a shipment.resources/examples
+order: 2000

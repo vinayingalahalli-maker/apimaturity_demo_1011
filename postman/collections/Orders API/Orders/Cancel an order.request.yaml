@@ -1,0 +1,9 @@
+$kind: http-request
+url: "{{baseUrl}}/orders/:orderId"
+method: DELETE
+headers:
+  Accept: application/json
+pathVariables:
+  orderId: string
+examples: ./.resources/Cancel an order.resources/examples
+order: 5000

@@ -1,0 +1,13 @@
+$kind: http-request
+url: "{{baseUrl}}/inventory?skuId=string&lowStock=false"
+method: GET
+headers:
+  Accept: application/json
+queryParams:
+  - key: skuId
+    value: string
+  - key: lowStock
+    value: "false"
+    description: If true, returns only items below reorder threshold
+examples: ./.resources/List inventory levels.resources/examples
+order: 1000

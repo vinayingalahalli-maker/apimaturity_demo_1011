@@ -1,0 +1,12 @@
+$kind: http-request
+description: Returns a paginated list of all orders.
+url: "{{baseUrl}}/orders?status=cancelled&customerId=string&limit=20"
+method: GET
+headers:
+  Accept: application/json
+queryParams:
+  status: cancelled
+  customerId: string
+  limit: "20"
+examples: ./.resources/List all orders.resources/examples
+order: 1000

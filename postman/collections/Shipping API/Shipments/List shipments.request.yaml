@@ -1,0 +1,11 @@
+$kind: http-request
+url: "{{baseUrl}}/shipments?orderId=string&status=exception&carrier=string"
+method: GET
+headers:
+  Accept: application/json
+queryParams:
+  orderId: string
+  status: exception
+  carrier: string
+examples: ./.resources/List shipments.resources/examples
+order: 1000
