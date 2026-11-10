@@ -196,6 +196,31 @@ paths:
               example:
                 reservationId: "res_001xyz"
                 status: "released"
+  
+  /inventory/low-stock:
+    get:
+      tags: [Inventory]
+      summary: List low stock items
+      description: Returns all SKUs where quantityAvailable is below the reorderThreshold.
+      parameters:
+        - name: warehouseLocation
+          in: query
+          description: Filter by warehouse location code
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Low stock inventory list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/InventoryItem'
+                
 components:
   schemas:
     InventoryItem:
